@@ -1,34 +1,27 @@
 # Attendly Frontend
 
-Premium HRMS attendance portal for the Serverless Attendance System.
+React + Vite employee and admin UI for the Serverless Attendance System.
 
-## Setup
+## Local setup
 
-```bash
+```powershell
 npm install
-cp .env.example .env
+Copy-Item .env.example .env
 npm run dev
 ```
 
-For PowerShell, copy the environment file with `Copy-Item .env.example .env`.
+The supplied environment example uses the confirmed API Gateway endpoint. If `VITE_API_BASE_URL` is empty, attendance remains clearly labelled demo mode and cannot upload images.
 
-## Environment
+## Backend integration
 
-`VITE_API_BASE_URL` should point to the backend API. The frontend calls `POST /generate-presigned-url`, then uploads the captured JPEG directly to the returned S3 `uploadUrl` with `PUT`.
+The employee capture flow detects JPEG/PNG bytes, calls `POST /generate-presigned-url` with only `{ contentType }`, validates the returned `incoming-captures/` key, and uploads the binary directly to the returned S3 URL with `PUT`. No AWS credentials are included.
 
-When the API base URL is not configured, attendance submission uses a local mock upload delay so the UI can be reviewed without AWS credentials. No credentials or production endpoints are stored in the frontend.
+Admin records use `GET /attendance` with only the confirmed combinations: `employee_id` + `date`, `status` + `date`, or `status` alone. Date-range filtering is intentionally disabled until the backend team confirms its query format.
 
-Recognition remains intentionally separate from upload because the S3 event triggers asynchronous AWS Rekognition processing. The placeholder is `src/services/api.js#getRecognitionResult`; it can be connected when the backend result contract is available.
+Recognition remains pending after upload until Sushant supplies its endpoint contract. The UI does not invent recognition or attendance results.
 
 ## Scripts
 
 - `npm run dev` — start the Vite development server
-- `npm run build` — create a production build
+- `npm run build` — create the production build
 - `npm run lint` — run the project linter
-
-## Routes
-
-- `/login` — employee/admin access selection and validation
-- `/admin` — dashboard overview, metrics, chart, and activity
-- `/employee` — webcam capture and attendance upload workflow
-- `/records` — searchable and filterable attendance history
